@@ -1,0 +1,93 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model veiculos {
+  id             Int           @id @default(autoincrement())
+  placa          String        @unique
+  marca          String
+  modelo         String
+  ano            Int
+
+  created_at DateTime @default(now())
+  update_at  DateTime @updatedAt
+
+  proprietario   proprietarios @relation(fields: [proprietarioId], references: [id])
+  proprietarioId Int
+  revisoes       revisoes[]
+}
+
+model proprietarios {
+  id       Int        @id @default(autoincrement())
+  nome     String
+  endereco String
+  telefone String
+  email    String     @unique
+
+  created_at DateTime @default(now())
+  update_at  DateTime @updatedAt
+
+  veiculos veiculos[]
+}
+
+model revisoes {
+  id          Int        @id @default(autoincrement())
+  veiculo     veiculos   @relation(fields: [veiculoId], references: [id])
+  veiculoId   Int
+  data        DateTime
+  km          Int
+  observacoes String?
+
+  created_at DateTime @default(now())
+  update_at  DateTime @updatedAt
+
+  servicos    servicos[]
+}
+
+model servicos {
+  id        Int                  @id @default(autoincrement())
+  revisao   revisoes             @relation(fields: [revisaoId], references: [id])
+  revisaoId Int
+  descricao String
+  custo     Float
+
+  created_at DateTime @default(now())
+  update_at  DateTime @updatedAt
+  
+  mecanicos servicos_mecanicos[]
+}
+
+model mecanicos {
+  id            Int                  @id @default(autoincrement())
+  nome          String
+  especialidade String
+  telefone      String
+  email         String               @unique
+
+  created_at DateTime @default(now())
+  update_at  DateTime @updatedAt 
+  servicos      servicos_mecanicos[]
+}
+
+model servicos_mecanicos {
+  id         Int       @id @default(autoincrement())
+  servico    servicos  @relation(fields: [servicoId], references: [id])
+  servicoId  Int
+  mecanico   mecanicos @relation(fields: [mecanicoId], references: [id])
+  mecanicoId Int
+  created_at DateTime @default(now())
+  update_at  DateTime @updatedAt
+  
+  @@unique([servicoId, mecanicoId])
+}
